@@ -45,40 +45,7 @@ jobs:
           name: dependency-check-report
           path: reports/
 
-  # sonarqube:
-  #   name: 🔎 SonarQube Code Analysis
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-
-  #     - name: Set up JDK (required by SonarScanner)
-  #       uses: actions/setup-java@v3
-  #       with:
-  #         distribution: 'temurin'  # Required input
-  #         java-version: '17'
-
-  #     - name: Install SonarScanner
-  #       run: |
-  #         curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-  #         unzip sonar-scanner.zip -d $HOME/.sonar
-  #         echo "$HOME/.sonar/sonar-scanner-5.0.1.3006-linux/bin" >> $GITHUB_PATH
-
-  #     - name: Run SonarQube Scan
-  #       env:
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #       run: |
-  #         sonar-scanner \
-  #           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
-  #           -Dsonar.organization=${{ secrets.SONAR_ORG }} \
-  #           -Dsonar.sources=. \
-  #           -Dsonar.host.url=https://sonarcloud.io \
-  #           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-  #     - name: Check SonarCloud Quality Gate
-  #       uses: sonarsource/sonarcloud-github-action@v2
-  #       with:
-  #         token: ${{ secrets.SONAR_TOKEN }}
-
+  
   docker:
     name: 🐳 Docker Build, Scan & Push
     runs-on: ubuntu-latest
