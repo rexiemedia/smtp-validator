@@ -1,21 +1,22 @@
 name: DevSecOps Pipeline
-
-on:
+'on':
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    types: [opened, synchronize, reopened]
-
+    types:
+      - opened
+      - synchronize
+      - reopened
 jobs:
   semgrep:
     name: Semgrep Static Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4  # Update to v4 for security/best practices
-      - uses: semgrep/semgrep-action@v1  # Updated repo
+      - uses: actions/checkout@v4
+      - uses: semgrep/semgrep-action@v1
         with:
           config: .semgrep/rules.yml
-
   test:
     name: Pytest Unit Tests
     runs-on: ubuntu-latest
@@ -27,7 +28,6 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: pytest tests/
-
   dependency-check:
     name: OWASP Dependency Check
     runs-on: ubuntu-latest
@@ -36,45 +36,49 @@ jobs:
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-          project: "smtp-validator"
-          path: "."
-          format: "HTML"
-          out: "reports"
-          failOnCVSS: "7"  # Optional: Fail on high vulnerabilities
+          project: smtp-validator
+          path: .
+          format: HTML
+          out: reports
+          failOnCVSS: '7'
       - name: Upload OWASP report
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
           path: reports/
-
-  sonarqube:
-    name: SonarCloud Code Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Required for branch/PR analysis
-
-      - name: SonarCloud Scan & Quality Gate
-        uses: SonarSource/sonarcloud-github-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # For PR status updates
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=${{ secrets.SONAR_ORG }}
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/tests/**,**/node_modules/**,**/venv/**  # Customize as needed
-          # Built-in quality gate wait (polls until complete or timeout)
-          wait-for-quality-gate: true
-          # Optional: Increase timeout if analysis is slow (default: 300s)
-          polling-timeout-sec: 600
-
+  sonarqube: null
+  name: SonarCloud Code Analysis
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarqube-scan-action@v3
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        args: >
+          -Dsonar.organization=${{ secrets.SONAR_ORG }} -Dsonar.projectKey=${{
+          secrets.SONAR_PROJECT_KEY }} -Dsonar.sources=.
+          -Dsonar.exclusions=**/tests/**,**/node_modules/**,**/venv/**  # Adjust
+          as needed -Dsonar.verbose=true  # Optional: For debug logs
+    - name: SonarCloud Quality Gate Check
+      uses: SonarSource/sonarqube-quality-gate-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        pollingTimeoutSec: 600
   docker:
     name: Docker Build, Scan & Push
     runs-on: ubuntu-latest
-    needs: [semgrep, test, dependency-check, sonarqube]
+    needs:
+      - semgrep
+      - test
+      - dependency-check
+      - sonarqube
     steps:
       - uses: actions/checkout@v4
       - name: Set version tag
@@ -83,16 +87,21 @@ jobs:
       - name: Build Docker image
         run: docker build -t <your-username>/smtp-validator:${{ env.VERSION }} .
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.25.0  # Pin version
+        uses: aquasecurity/trivy-action@0.25.0
         with:
           image-ref: <your-username>/smtp-validator:${{ env.VERSION }}
           format: table
           exit-code: 1
           severity: CRITICAL,HIGH
       - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        run: >-
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{
+          secrets.DOCKER_USERNAME }}" --password-stdin
       - name: Push Docker image
-        run: |
-          docker tag <your-username>/smtp-validator:${{ env.VERSION }} <your-username>/smtp-validator:latest
+        run: >
+          docker tag <your-username>/smtp-validator:${{ env.VERSION }}
+          <your-username>/smtp-validator:latest
+
           docker push <your-username>/smtp-validator:${{ env.VERSION }}
+
           docker push <your-username>/smtp-validator:latest
