@@ -3,14 +3,16 @@ name: DevSecOps Pipeline
 on:
   push:
     branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   semgrep:
     name: Semgrep Static Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: returntocorp/semgrep-action@v1
+      - uses: actions/checkout@v4  # Update to v4 for security/best practices
+      - uses: semgrep/semgrep-action@v1  # Updated repo
         with:
           config: .semgrep/rules.yml
 
@@ -18,10 +20,9 @@ jobs:
     name: Pytest Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
       - name: Run tests
         env:
           PYTHONPATH: ${{ github.workspace }}
@@ -31,7 +32,7 @@ jobs:
     name: OWASP Dependency Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -39,6 +40,7 @@ jobs:
           path: "."
           format: "HTML"
           out: "reports"
+          failOnCVSS: "7"  # Optional: Fail on high vulnerabilities
       - name: Upload OWASP report
         uses: actions/upload-artifact@v4
         with:
@@ -49,55 +51,48 @@ jobs:
     name: SonarQube Code Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: SonarSource/sonarqube-scan-action@v6
-
-      - name: Set up JDK (required by SonarScanner)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'  # Required input
-          java-version: '17'
-
-      - name: Install SonarScanner
-        run: |
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-          unzip sonar-scanner.zip -d $HOME/.sonar
-          echo "$HOME/.sonar/sonar-scanner-5.0.1.3006-linux/bin" >> $GITHUB_PATH
-
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # For better reporting
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: sonarsource/sonarqube-scan-action@v3  # Use latest stable; supports SonarCloud
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io  # For SonarCloud
+        with:
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+      - name: SonarQube Quality Gate Check
+        uses: sonarsource/sonarqube-quality-gate-action@v2  # Latest
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          pollingTimeoutSec: 600  # Increase if needed
 
   docker:
     name: Docker Build, Scan & Push
     runs-on: ubuntu-latest
     needs: [semgrep, test, dependency-check, sonarqube]
     steps:
-      - uses: actions/checkout@v3
-
+      - uses: actions/checkout@v4
       - name: Set version tag
         id: vars
         run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
       - name: Build Docker image
-        run: docker build -t yourdockerhubuser/smtp-validator:${{ env.VERSION }} .
-
+        run: docker build -t <your-username>/smtp-validator:${{ env.VERSION }} .
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.25.0  # Pin version
         with:
-          image-ref: yourdockerhubuser/smtp-validator:${{ env.VERSION }}
+          image-ref: <your-username>/smtp-validator:${{ env.VERSION }}
           format: table
           exit-code: 1
           severity: CRITICAL,HIGH
-
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
       - name: Push Docker image
         run: |
-          docker tag yourdockerhubuser/smtp-validator:${{ env.VERSION }} yourdockerhubuser/smtp-validator:latest
-          docker push yourdockerhubuser/smtp-validator:${{ env.VERSION }}
-          docker push yourdockerhubuser/smtp-validator:latest
+          docker tag <your-username>/smtp-validator:${{ env.VERSION }} <your-username>/smtp-validator:latest
+          docker push <your-username>/smtp-validator:${{ env.VERSION }}
+          docker push <your-username>/smtp-validator:latest
