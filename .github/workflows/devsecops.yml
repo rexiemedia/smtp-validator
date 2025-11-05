@@ -54,6 +54,7 @@ jobs:
       - name: Set up JDK (required by SonarScanner)
         uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'  # Required input
           java-version: '17'
 
       - name: Install SonarScanner
