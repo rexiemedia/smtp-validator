@@ -1,0 +1,7 @@
+services:
+  smtp-validator:
+    build: .
+    ports:
+      - "5100:5100"
+    env_file:
+      - .env

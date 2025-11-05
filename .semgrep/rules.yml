@@ -1,0 +1,6 @@
+rules:
+  - id: flask-debug-mode
+    pattern: "app.run(debug=True)"
+    message: "Avoid using debug=True in production"
+    severity: ERROR
+    languages: [python]
