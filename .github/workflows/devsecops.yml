@@ -6,7 +6,7 @@ on:
 
 jobs:
   semgrep:
-    name:  Semgrep Static Analysis
+    name: 🛡️ Semgrep Static Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
         run: pytest tests/
 
   dependency-check:
-    name:  OWASP Dependency Check
+    name: 🔍 OWASP Dependency Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -46,10 +46,10 @@ jobs:
           path: reports/
 
   sonarqube:
-    name:  SonarQube Code Analysis
+    name: 🔎 SonarQube Code Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: sonarsource/sonarcloud-quality-gate-action@master
+      - uses: actions/checkout@v3
 
       - name: Set up JDK (required by SonarScanner)
         uses: actions/setup-java@v3
@@ -74,12 +74,12 @@ jobs:
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: Check SonarCloud Quality Gate
-        uses: SonarSource/sonarcloud-quality-gate-action@v1.1.0
+        uses: sonarsource/sonarcloud-github-action@v2
         with:
-          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          token: ${{ secrets.SONAR_TOKEN }}
 
   docker:
-    name:  Docker Build, Scan & Push
+    name: 🐳 Docker Build, Scan & Push
     runs-on: ubuntu-latest
     needs: [semgrep, test, dependency-check, sonarqube]
     steps:
