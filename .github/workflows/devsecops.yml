@@ -6,7 +6,7 @@ on:
 
 jobs:
   semgrep:
-    name: 🛡️ Semgrep Static Analysis
+    name: Semgrep Static Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,7 +15,7 @@ jobs:
           config: .semgrep/rules.yml
 
   test:
-    name: 🧪 Pytest Unit Tests
+    name: Pytest Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
         run: pytest tests/
 
   dependency-check:
-    name: 🔍 OWASP Dependency Check
+    name: OWASP Dependency Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -45,9 +45,34 @@ jobs:
           name: dependency-check-report
           path: reports/
 
-  
+  sonarqube:
+    name: SonarQube Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: SonarSource/sonarqube-scan-action@v6
+
+      - name: Set up JDK (required by SonarScanner)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'  # Required input
+          java-version: '17'
+
+      - name: Install SonarScanner
+        run: |
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip sonar-scanner.zip -d $HOME/.sonar
+          echo "$HOME/.sonar/sonar-scanner-5.0.1.3006-linux/bin" >> $GITHUB_PATH
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }
+
   docker:
-    name: 🐳 Docker Build, Scan & Push
+    name: Docker Build, Scan & Push
     runs-on: ubuntu-latest
     needs: [semgrep, test, dependency-check, sonarqube]
     steps:
