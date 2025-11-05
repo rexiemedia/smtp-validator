@@ -47,29 +47,29 @@ jobs:
           name: dependency-check-report
           path: reports/
 
-sonarqube:
-  name: SonarCloud Code Analysis
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Required for branch/PR analysis
+  sonarqube:
+    name: SonarCloud Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for branch/PR analysis
 
-    - name: SonarCloud Scan & Quality Gate
-      uses: SonarSource/sonarcloud-github-action@v3
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # For PR status updates
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=${{ secrets.SONAR_ORG }}
-          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-          -Dsonar.sources=.
-          -Dsonar.exclusions=**/tests/**,**/node_modules/**,**/venv/**  # Customize as needed
-        # Built-in quality gate wait (polls until complete or timeout)
-        wait-for-quality-gate: true
-        # Optional: Increase timeout if analysis is slow (default: 300s)
-        polling-timeout-sec: 600
+      - name: SonarCloud Scan & Quality Gate
+        uses: SonarSource/sonarcloud-github-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # For PR status updates
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/tests/**,**/node_modules/**,**/venv/**  # Customize as needed
+          # Built-in quality gate wait (polls until complete or timeout)
+          wait-for-quality-gate: true
+          # Optional: Increase timeout if analysis is slow (default: 300s)
+          polling-timeout-sec: 600
 
   docker:
     name: Docker Build, Scan & Push
