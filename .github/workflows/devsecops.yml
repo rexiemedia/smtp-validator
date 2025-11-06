@@ -50,24 +50,24 @@ jobs:
   sonarqube:
     name: SonarCloud Code Analysis
     runs-on: ubuntu-latest
+    # --- FIX STARTS HERE ---
+    environment: SONAR_TOKEN
+    # --- FIX ENDS HERE ---
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Fail if SONAR_TOKEN is missing
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if [ -z "$SONAR_TOKEN" ]; then
-            echo "❌ SONAR_TOKEN is not set. Failing early."
+          # Check the secret value directly using the GitHub context
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "SONAR_TOKEN is not set in the environment '${{ env.environment }}'. Failing early."
             exit 1
           fi
 
       - name: Debug SONAR_TOKEN presence
-        env:
-          { SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} }
-        run: echo " SONAR_TOKEN is set"
+        run: echo "SONAR_TOKEN is set and accessible."
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v3
