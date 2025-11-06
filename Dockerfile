@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # Copy app source for build (linting/tests, optional)
 COPY app/ app/
-COPY main.py .
+COPY app/main.py .
 
 # === Stage 2: Minimal runtime image ===
 FROM python:3.11-slim AS final
