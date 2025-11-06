@@ -27,8 +27,8 @@ COPY --from=builder /install /usr/local
 
 # Copy only necessary application files
 COPY app/ app/
-COPY main.py .
-COPY .env.example .env.example
+COPY app/main.py .
+COPY app/.env.example .env.example
 
 # Create a non-root user and switch
 RUN useradd -m appuser && chown -R appuser /app
