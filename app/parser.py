@@ -13,10 +13,10 @@ except Exception:
 MAX_INPUT_LEN = int(os.getenv("MAX_INPUT_LEN", 2000))  # cap input length to prevent abuse
 
 # Safer regexes (no nested ambiguous quantifiers).
-EMAIL_RE = re.compile(r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}', re.I)
-PHONE_RE = re.compile(r'\+?\d(?:[ \-\(\)\.\d]{7,}\d)')  # anchored-ish: starts with digit (or +) then at least ~9 digits/sep
-NAME_RE = re.compile(r'^[Nn]ame[:\-]?\s*(\S[^\n]{0,100})$', re.MULTILINE)
-COMPANY_RE = re.compile(r'^[Cc]ompany[:\-]?\s*(\S[^\n]{0,100})$', re.MULTILINE)
+EMAIL_RE = re.compile(r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', re.I)
+PHONE_RE = re.compile(r'\+?\d[\d \-().]{7,}\d')
+NAME_RE = re.compile(r'^[Nn]ame[:\-]?\s*(\S.{0,99})$', re.MULTILINE)
+COMPANY_RE = re.compile(r'^[Cc]ompany[:\-]?\s*(\S.{0,99})$', re.MULTILINE)
 
 def _safe_search(pattern, text):
     """Wrapper to run re.search on sliced text to avoid pathological length."""
