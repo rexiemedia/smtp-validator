@@ -1,4 +1,62 @@
 credentials.json
-.env
-.venv/
+
 venv/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Version control
+.git/
+
+
+# Environment variables and secrets
+.env
+*.pem
+*.key
+*.crt
+
+# Build artifacts and logs
+*.log
+dist/
+build/
+reports/
+
+# Dependency caches
+pip-cache/
+.cache/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+
+
+# Git
+.git/
+
+
+# Secrets
+
+*.pem
+
+*.crt
+
+# Build artifacts
+build/
+dist/
+reports/
+.cache/
+pip-wheel-metadata/
+
+# Logs
+*.log
+.gitignore
