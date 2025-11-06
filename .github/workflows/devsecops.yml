@@ -60,10 +60,8 @@ jobs:
           fetch-depth: 0
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v3
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          sonarToken: ${{ secrets.SONAR_TOKEN }}        # Correct usage
           args: >
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
@@ -71,6 +69,8 @@ jobs:
             -Dsonar.exclusions=**/tests/**,**/node_modules/**,**/venv/**
             -Dsonar.verbose=true
           projectBaseDir: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docker:
     name: Docker Build, Scan & Push
