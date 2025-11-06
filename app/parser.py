@@ -13,7 +13,7 @@ except Exception:
 MAX_INPUT_LEN = int(os.getenv("MAX_INPUT_LEN", 2000))  # cap input length to prevent abuse
 
 # Safer regexes (no nested ambiguous quantifiers).
-EMAIL_RE = re.compile(r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', re.I)
+EMAIL_RE = re.compile(r'[a-z0-9._%+\-]+@[a-z0-9.-]+\.[a-z]{2,}', re.I)
 PHONE_RE = re.compile(r'\+?\d[\d \-().]{7,}\d')
 NAME_RE = re.compile(r'^[Nn]ame[:\-]?\s*(\S.{0,99})$', re.MULTILINE)
 COMPANY_RE = re.compile(r'^[Cc]ompany[:\-]?\s*(\S.{0,99})$', re.MULTILINE)
