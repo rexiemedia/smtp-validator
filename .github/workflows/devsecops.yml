@@ -72,6 +72,7 @@ jobs:
             -Dsonar.verbose=true
           projectBaseDir: .
 
+
   docker:
     name: Docker Build, Scan & Push
     runs-on: ubuntu-latest
