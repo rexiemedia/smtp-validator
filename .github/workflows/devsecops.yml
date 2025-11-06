@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: semgrep/semgrep-action@v1.7.0
+      - uses: semgrep/semgrep-action@v1 
         with:
           config: .semgrep/rules.yml
 
@@ -34,7 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@v1.1.0
+        # Change from @v1.1.0 to @main
+        uses: dependency-check/Dependency-Check_Action@main 
         with:
           project: smtp-validator
           path: .
