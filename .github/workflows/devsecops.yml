@@ -56,16 +56,18 @@ jobs:
           fetch-depth: 0
 
       - name: Fail if SONAR_TOKEN is missing
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
-            echo " SONAR_TOKEN is not set. Failing early."
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "❌ SONAR_TOKEN is not set. Failing early."
             exit 1
           fi
 
       - name: Debug SONAR_TOKEN presence
-        run: echo " SONAR_TOKEN is set"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: echo " SONAR_TOKEN is set"
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v3
