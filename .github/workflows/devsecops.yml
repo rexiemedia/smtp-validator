@@ -87,6 +87,7 @@ jobs:
     name: Docker Build, Scan & Push
     runs-on: ubuntu-latest
     needs: [semgrep, test, dependency-check, sonarqube]
+    environment: SONAR_TOKEN
     steps:
       - uses: actions/checkout@v4
 
