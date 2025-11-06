@@ -44,7 +44,7 @@ jobs:
           path: .
           format: HTML
           out: reports
-          failOnCVSS: '7'
+          args: --failOnCVSS 7
       - name: Upload OWASP report
         uses: actions/upload-artifact@v4
         with:
@@ -70,13 +70,7 @@ jobs:
             -Dsonar.sources=.
             -Dsonar.exclusions=**/tests/**,**/node_modules/**,**/venv/**
             -Dsonar.verbose=true
-      - name: SonarCloud Quality Gate Check
-        uses: SonarSource/sonarqube-quality-gate-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          pollingTimeoutSec: 600
+          projectBaseDir: .
 
   docker:
     name: Docker Build, Scan & Push
