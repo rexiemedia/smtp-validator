@@ -12,10 +12,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: semgrep/semgrep-action@v1 
+      - uses: semgrep/semgrep-action@v1
         with:
           config: .semgrep/rules.yml
+  frontend:
+    name: Frontend Lint, Audit & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npx eslint src --ext .js,.jsx
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+
+      - name: Run frontend tests
+        run: npm test -- --watchAll=false
   test:
     name: Pytest Unit Tests
     runs-on: ubuntu-latest
@@ -25,8 +49,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run tests
         env:
-          PYTHONPATH: ${{ github.workspace }}
-        run: pytest tests/
+          PYTHONPATH: ${{ github.workspace }}/backend/app
+        run: pytest backend/tests/
 
   dependency-check:
     name: OWASP Dependency Check
@@ -34,11 +58,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run OWASP Dependency-Check
-        # Change from @v1.1.0 to @main
-        uses: dependency-check/Dependency-Check_Action@main 
+        uses: dependency-check/Dependency-Check_Action@main
         with:
           project: smtp-validator
-          path: .
+          path: backend/app
           format: HTML
           out: reports
           args: --failOnCVSS 7
@@ -51,16 +74,13 @@ jobs:
   sonarqube:
     name: SonarCloud Code Analysis
     runs-on: ubuntu-latest
-    # --- FIX STARTS HERE ---
     environment: SONAR_TOKEN
-    # --- FIX ENDS HERE ---
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Debug SONAR_TOKEN presence
         run: echo "SONAR_TOKEN is set and accessible."
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v3
         env:
@@ -70,10 +90,10 @@ jobs:
           args: >
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.sources=.
+            -Dsonar.sources=backend/app
             -Dsonar.exclusions=**/tests/**,**/node_modules/**,**/venv/**
             -Dsonar.verbose=true
-          projectBaseDir: .
+          projectBaseDir: backend/app
 
   docker:
     name: Docker Build, Scan & Push
@@ -88,7 +108,7 @@ jobs:
         run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/smtp-validator:${{ env.VERSION }} .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/smtp-validator:${{ env.VERSION }} backend/
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.25.0
@@ -109,3 +129,5 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/smtp-validator:${{ env.VERSION }} ${{ secrets.DOCKER_USERNAME }}/smtp-validator:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/smtp-validator:${{ env.VERSION }}
           docker push ${{ secrets.DOCKER_USERNAME }}/smtp-validator:latest
+
+
